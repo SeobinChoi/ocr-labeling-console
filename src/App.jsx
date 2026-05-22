@@ -22,7 +22,7 @@ import {
 import { SAMPLE_ITEMS } from './sampleItems';
 import './styles.css';
 
-const STORAGE_KEY = 'ocr-labeling-console:v1';
+const STORAGE_KEY = 'ocr-labeling-console:v2-camel-images';
 
 function normalizeItem(raw, index) {
   return {
@@ -118,7 +118,9 @@ function App() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        const hasImages = parsed.some((item) => item.imageUrl || item.image_url || item.pageLineUrls?.length || item.page_line_urls?.length);
+        return hasImages ? parsed : SAMPLE_ITEMS;
       } catch {
         return SAMPLE_ITEMS;
       }
@@ -219,6 +221,16 @@ function App() {
     setTimeout(() => setToast(''), 1800);
   }
 
+  function loadCamelDemo() {
+    localStorage.removeItem(STORAGE_KEY);
+    setItems(SAMPLE_ITEMS);
+    setIndex(0);
+    setFilter('all');
+    setImageMode('page');
+    setToast('camel 샘플 이미지 queue를 다시 불러왔습니다.');
+    setTimeout(() => setToast(''), 1800);
+  }
+
   function exportLabels() {
     const rows = items.map((item) => ({
       id: item.id,
@@ -260,6 +272,7 @@ function App() {
             <Image size={17} /> Import images folder
             <input type="file" accept="image/*" multiple webkitdirectory="" onChange={handleImageImport} hidden />
           </label>
+          <button className="button secondary" onClick={loadCamelDemo}>Load camel demo</button>
           <button className="button primary" onClick={exportLabels}><Download size={17} /> Export labels</button>
         </div>
       </header>
