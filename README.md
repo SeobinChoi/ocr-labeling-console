@@ -7,8 +7,9 @@ GitHub Pages로 배포하는 **OCR 검수 + SCM 라벨링 프론트엔드 protot
 ## What it does now
 
 - JSON/JSONL import
+- built-in camel demo images for Haru/Otis/Stella line-crop pages
 - local image folder import: JSONL의 `image_url`, `image_path`, `page_image_url`, `page_image_path`와 파일명 매칭
-- full-page 시험지 / line crop 이미지 전환
+- full-page 시험지 / reconstructed line-crop page / line crop 이미지 전환
 - zoom / contrast controls
 - OCR 후보 3개 비교: Apple/baseline, Qwen VLM, Qwen LoRA
 - corrected text 편집
@@ -47,6 +48,10 @@ https://<github-user>.github.io/ocr-labeling-console/
 
 ## Import workflow
 
+기본 화면에는 camel에서 가져온 Haru/Otis/Stella 샘플 line-crop 이미지가 내장되어 있어 바로 볼 수 있습니다.
+
+운영 데이터는:
+
 1. `Import JSONL`로 work queue를 불러옵니다.
 2. `Import images folder`로 시험지 이미지 폴더를 브라우저에 연결합니다.
 3. JSONL의 `image_url`/`image_path` 또는 `page_image_url`/`page_image_path` 값과 이미지 파일명 또는 상대경로가 같으면 화면에 표시됩니다.
@@ -75,6 +80,7 @@ uploaded file:    images/Haru/p02_l020_id288.png
   "task_type": "F",
   "image_url": "images/Haru/p02_l020_id288.png",
   "page_image_url": "pages/Haru/page-02.png",
+  "page_line_urls": ["images/Haru/p02_l001_id269.png", "images/Haru/p02_l020_id288.png"],
   "apple_ocr": "do bore mark So you will fell bad",
   "qwen_ocr": "do home work So you will feel bad.",
   "qwen_lora_ocr": "do home work So you will fell bad.",

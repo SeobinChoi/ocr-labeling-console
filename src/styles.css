@@ -227,6 +227,24 @@ h2 span { color: var(--muted); font-size: 28px; }
   overflow: auto;
 }
 .imageStage img { max-width: 100%; display: block; transform-origin: center top; transition: transform .16s ease, filter .16s ease; }
+.syntheticPage {
+  width: min(100%, 1220px);
+  transform-origin: center top;
+  transition: transform .16s ease, filter .16s ease;
+  background: #fbfaf6;
+  border-radius: 10px;
+  padding: 22px 28px 34px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.38);
+}
+.syntheticHeader {
+  color: #463d31;
+  font-weight: 900;
+  font-size: 13px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.syntheticPage img { width: 100%; max-width: none; margin: 6px 0; border-bottom: 1px solid rgba(70,61,49,.12); }
 .imagePlaceholder { color: var(--muted); padding: 32px; text-align: center; line-height: 1.6; }
 .imagePlaceholder code { color: var(--gold); }
 

@@ -35,6 +35,7 @@ function normalizeItem(raw, index) {
     taskType: raw.taskType || raw.task_type || '',
     imageUrl: raw.imageUrl || raw.image_url || raw.image_path || '',
     pageImageUrl: raw.pageImageUrl || raw.page_image_url || raw.page_image_path || '',
+    pageLineUrls: raw.pageLineUrls || raw.page_line_urls || [],
     appleText: raw.appleText || raw.apple_ocr || raw.baseline_ocr || raw.original_text || '',
     qwenText: raw.qwenText || raw.qwen_ocr || raw.qwen_vlm || raw.prediction || '',
     loraText: raw.loraText || raw.qwen_lora_ocr || raw.lora_prediction || '',
@@ -101,7 +102,15 @@ function resolveImageSource(item, mode, imageMap) {
   if (!requested) return '';
   if (isBrowserUrl(requested)) return requested;
   const normalized = normalizePath(requested);
-  return imageMap[normalized] || imageMap[basename(normalized)] || '';
+  return imageMap[normalized] || imageMap[basename(normalized)] || `${import.meta.env.BASE_URL}sample-data/${normalized}`;
+}
+
+function resolveLineSources(item, imageMap) {
+  return (item.pageLineUrls || []).map((path) => {
+    if (isBrowserUrl(path)) return path;
+    const normalized = normalizePath(path);
+    return imageMap[normalized] || imageMap[basename(normalized)] || `${import.meta.env.BASE_URL}sample-data/${normalized}`;
+  });
 }
 
 function App() {
@@ -138,6 +147,7 @@ function App() {
   const current = filtered[index] || filtered[0] || null;
   const currentGlobalIndex = current ? items.findIndex((item) => item.id === current.id) : -1;
   const currentImageSrc = current ? resolveImageSource(current, imageMode, imageMap) : '';
+  const currentLineSources = current && imageMode === 'page' ? resolveLineSources(current, imageMap) : [];
 
   const stats = useMemo(() => {
     const total = items.length;
@@ -307,12 +317,17 @@ function App() {
               </div>
             </div>
             <div className="imageStage">
-              {currentImageSrc ? (
+              {imageMode === 'page' && currentLineSources.length ? (
+                <div className="syntheticPage" style={{ transform: `scale(${zoom})`, filter: `contrast(${contrast})` }}>
+                  <div className="syntheticHeader">{current.studentName} · page {current.pageNum} · reconstructed from line crops</div>
+                  {currentLineSources.map((src, lineIndex) => <img key={`${src}-${lineIndex}`} src={src} alt={`line ${lineIndex + 1}`} />)}
+                </div>
+              ) : currentImageSrc ? (
                 <img src={currentImageSrc} alt={imageMode === 'page' ? 'Exam page' : 'OCR crop'} style={{ transform: `scale(${zoom})`, filter: `contrast(${contrast})` }} />
               ) : (
                 <div className="imagePlaceholder">
                   시험지 이미지가 아직 연결되지 않았습니다.<br />
-                  JSONL에는 <code>{imageMode === 'page' ? 'page_image_url' : 'image_url'}</code> 또는 image_path를 넣고,<br />
+                  JSONL에는 <code>{imageMode === 'page' ? 'page_image_url/page_line_urls' : 'image_url'}</code> 또는 image_path를 넣고,<br />
                   위의 <b>Import images folder</b>로 같은 파일명을 가진 이미지 폴더를 올리세요.
                 </div>
               )}
