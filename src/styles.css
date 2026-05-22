@@ -182,18 +182,53 @@ h2 span { color: var(--muted); font-size: 28px; }
 .confidence.warn { background: rgba(238, 191, 97, 0.14); color: var(--gold); }
 .confidence.bad { background: rgba(239, 118, 108, 0.15); color: var(--red); }
 
+.imageToolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin: 18px 0 10px;
+}
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.035);
+}
+.segmented button, .imageControls button {
+  border: 0;
+  color: var(--muted);
+  background: transparent;
+  padding: 8px 12px;
+}
+.segmented button.active { color: #21180c; background: var(--gold); font-weight: 900; }
+.imageControls { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+.imageControls button {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0;
+}
+.imageControls label { display: flex; align-items: center; gap: 7px; }
+.imageControls input { accent-color: var(--gold); width: 90px; }
 .imageStage {
-  margin: 20px 0;
-  min-height: 150px;
+  margin: 0 0 20px;
+  min-height: 430px;
+  max-height: 62vh;
   border-radius: 24px;
   border: 1px dashed rgba(244,239,228,0.22);
   background: repeating-linear-gradient(-45deg, rgba(255,255,255,0.045), rgba(255,255,255,0.045) 10px, transparent 10px, transparent 20px);
   display: grid;
   place-items: center;
-  overflow: hidden;
+  overflow: auto;
 }
-.imageStage img { max-width: 100%; display: block; }
-.imagePlaceholder { color: var(--muted); padding: 32px; text-align: center; }
+.imageStage img { max-width: 100%; display: block; transform-origin: center top; transition: transform .16s ease, filter .16s ease; }
+.imagePlaceholder { color: var(--muted); padding: 32px; text-align: center; line-height: 1.6; }
+.imagePlaceholder code { color: var(--gold); }
 
 .ocrGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .ocrGrid button {

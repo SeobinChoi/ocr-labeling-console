@@ -7,6 +7,9 @@ GitHub Pages로 배포하는 **OCR 검수 + SCM 라벨링 프론트엔드 protot
 ## What it does now
 
 - JSON/JSONL import
+- local image folder import: JSONL의 `image_url`, `image_path`, `page_image_url`, `page_image_path`와 파일명 매칭
+- full-page 시험지 / line crop 이미지 전환
+- zoom / contrast controls
 - OCR 후보 3개 비교: Apple/baseline, Qwen VLM, Qwen LoRA
 - corrected text 편집
 - teacher SCM 라벨 입력
@@ -42,6 +45,21 @@ npm run build
 https://<github-user>.github.io/ocr-labeling-console/
 ```
 
+## Import workflow
+
+1. `Import JSONL`로 work queue를 불러옵니다.
+2. `Import images folder`로 시험지 이미지 폴더를 브라우저에 연결합니다.
+3. JSONL의 `image_url`/`image_path` 또는 `page_image_url`/`page_image_path` 값과 이미지 파일명 또는 상대경로가 같으면 화면에 표시됩니다.
+4. 이미지는 repo에 업로드하지 않고 브라우저 memory object URL로만 연결됩니다.
+
+예:
+
+```text
+JSONL image_path: images/Haru/p02_l020_id288.png
+uploaded file:    images/Haru/p02_l020_id288.png
+또는 basename:    p02_l020_id288.png
+```
+
 ## Import JSONL schema
 
 최소 필드 예시:
@@ -55,7 +73,8 @@ https://<github-user>.github.io/ocr-labeling-console/
   "page_num": 2,
   "line_num": 20,
   "task_type": "F",
-  "image_url": "https://signed-url-or-local-path",
+  "image_url": "images/Haru/p02_l020_id288.png",
+  "page_image_url": "pages/Haru/page-02.png",
   "apple_ocr": "do bore mark So you will fell bad",
   "qwen_ocr": "do home work So you will feel bad.",
   "qwen_lora_ocr": "do home work So you will fell bad.",
@@ -117,6 +136,9 @@ Export scripts: golden OCR dataset + teacher-aligned SCM dataset
 
 ## Next implementation steps
 
+- [x] browser-side image folder import
+- [x] full page / line crop view switch
+- [x] zoom + contrast controls
 - [ ] Supabase auth + table schema
 - [ ] signed image URL support
 - [ ] page-level view with line merge/split

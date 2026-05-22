@@ -9,9 +9,13 @@ import {
   Download,
   FileJson,
   Flag,
+  Image,
   Keyboard,
   PanelLeftOpen,
+  RotateCcw,
   ShieldAlert,
+  ZoomIn,
+  ZoomOut,
   Sparkles,
   Upload,
 } from 'lucide-react';
@@ -80,6 +84,26 @@ function confidenceClass(value) {
   return 'bad';
 }
 
+function normalizePath(path) {
+  return String(path || '').replace(/\\/g, '/').replace(/^\.\//, '').replace(/^\//, '');
+}
+
+function basename(path) {
+  return normalizePath(path).split('/').pop();
+}
+
+function isBrowserUrl(path) {
+  return /^(https?:|blob:|data:)/i.test(String(path || ''));
+}
+
+function resolveImageSource(item, mode, imageMap) {
+  const requested = mode === 'page' ? item.pageImageUrl || item.imageUrl : item.imageUrl || item.pageImageUrl;
+  if (!requested) return '';
+  if (isBrowserUrl(requested)) return requested;
+  const normalized = normalizePath(requested);
+  return imageMap[normalized] || imageMap[basename(normalized)] || '';
+}
+
 function App() {
   const [items, setItems] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -95,6 +119,10 @@ function App() {
   const [index, setIndex] = useState(0);
   const [filter, setFilter] = useState('all');
   const [toast, setToast] = useState('');
+  const [imageMap, setImageMap] = useState({});
+  const [imageMode, setImageMode] = useState('page');
+  const [zoom, setZoom] = useState(1);
+  const [contrast, setContrast] = useState(1.08);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
@@ -109,6 +137,7 @@ function App() {
 
   const current = filtered[index] || filtered[0] || null;
   const currentGlobalIndex = current ? items.findIndex((item) => item.id === current.id) : -1;
+  const currentImageSrc = current ? resolveImageSource(current, imageMode, imageMap) : '';
 
   const stats = useMemo(() => {
     const total = items.length;
@@ -164,6 +193,22 @@ function App() {
     setTimeout(() => setToast(''), 1600);
   }
 
+  function handleImageImport(event) {
+    const files = Array.from(event.target.files || []).filter((file) => file.type.startsWith('image/'));
+    if (!files.length) return;
+    const nextMap = {};
+    for (const file of files) {
+      const objectUrl = URL.createObjectURL(file);
+      const relativePath = normalizePath(file.webkitRelativePath || file.name);
+      nextMap[relativePath] = objectUrl;
+      nextMap[file.name] = objectUrl;
+      nextMap[basename(relativePath)] = objectUrl;
+    }
+    setImageMap((prev) => ({ ...prev, ...nextMap }));
+    setToast(`${files.length}개 시험지/라인 이미지를 연결했습니다.`);
+    setTimeout(() => setToast(''), 1800);
+  }
+
   function exportLabels() {
     const rows = items.map((item) => ({
       id: item.id,
@@ -200,6 +245,10 @@ function App() {
           <label className="button secondary">
             <Upload size={17} /> Import JSONL
             <input type="file" accept=".json,.jsonl,.txt" onChange={handleImport} hidden />
+          </label>
+          <label className="button secondary">
+            <Image size={17} /> Import images folder
+            <input type="file" accept="image/*" multiple webkitdirectory="" onChange={handleImageImport} hidden />
           </label>
           <button className="button primary" onClick={exportLabels}><Download size={17} /> Export labels</button>
         </div>
@@ -244,8 +293,29 @@ function App() {
               <div className={`confidence ${confidenceClass(current.confidence)}`}>{Math.round(current.confidence * 100)}%</div>
             </div>
 
+            <div className="imageToolbar">
+              <div className="segmented">
+                <button className={imageMode === 'page' ? 'active' : ''} onClick={() => setImageMode('page')}>Full page</button>
+                <button className={imageMode === 'line' ? 'active' : ''} onClick={() => setImageMode('line')}>Line crop</button>
+              </div>
+              <div className="imageControls">
+                <button onClick={() => setZoom((value) => Math.max(0.55, value - 0.15))}><ZoomOut size={15} /></button>
+                <span>{Math.round(zoom * 100)}%</span>
+                <button onClick={() => setZoom((value) => Math.min(2.6, value + 0.15))}><ZoomIn size={15} /></button>
+                <button onClick={() => { setZoom(1); setContrast(1.08); }}><RotateCcw size={15} /></button>
+                <label>Contrast <input type="range" min="0.8" max="1.8" step="0.05" value={contrast} onChange={(event) => setContrast(Number(event.target.value))} /></label>
+              </div>
+            </div>
             <div className="imageStage">
-              {current.imageUrl ? <img src={current.imageUrl} alt="OCR crop" /> : <div className="imagePlaceholder">Image URL 없음 — JSONL에 image_url 또는 image_path를 넣으면 표시됩니다.</div>}
+              {currentImageSrc ? (
+                <img src={currentImageSrc} alt={imageMode === 'page' ? 'Exam page' : 'OCR crop'} style={{ transform: `scale(${zoom})`, filter: `contrast(${contrast})` }} />
+              ) : (
+                <div className="imagePlaceholder">
+                  시험지 이미지가 아직 연결되지 않았습니다.<br />
+                  JSONL에는 <code>{imageMode === 'page' ? 'page_image_url' : 'image_url'}</code> 또는 image_path를 넣고,<br />
+                  위의 <b>Import images folder</b>로 같은 파일명을 가진 이미지 폴더를 올리세요.
+                </div>
+              )}
             </div>
 
             <div className="ocrGrid">
