@@ -316,73 +316,79 @@ function App() {
               <div className={`confidence ${confidenceClass(current.confidence)}`}>{Math.round(current.confidence * 100)}%</div>
             </div>
 
-            <div className="imageToolbar">
-              <div className="segmented">
-                <button className={imageMode === 'page' ? 'active' : ''} onClick={() => setImageMode('page')}>Full page</button>
-                <button className={imageMode === 'line' ? 'active' : ''} onClick={() => setImageMode('line')}>Line crop</button>
-              </div>
-              <div className="imageControls">
-                <button onClick={() => setZoom((value) => Math.max(0.55, value - 0.15))}><ZoomOut size={15} /></button>
-                <span>{Math.round(zoom * 100)}%</span>
-                <button onClick={() => setZoom((value) => Math.min(2.6, value + 0.15))}><ZoomIn size={15} /></button>
-                <button onClick={() => { setZoom(1); setContrast(1.08); }}><RotateCcw size={15} /></button>
-                <label>Contrast <input type="range" min="0.8" max="1.8" step="0.05" value={contrast} onChange={(event) => setContrast(Number(event.target.value))} /></label>
-              </div>
-            </div>
-            <div className="imageStage">
-              {imageMode === 'page' && currentLineSources.length ? (
-                <div className="syntheticPage" style={{ transform: `scale(${zoom})`, filter: `contrast(${contrast})` }}>
-                  <div className="syntheticHeader">{current.studentName} · page {current.pageNum} · reconstructed from line crops</div>
-                  {currentLineSources.map((src, lineIndex) => <img key={`${src}-${lineIndex}`} src={src} alt={`line ${lineIndex + 1}`} />)}
+            <div className="reviewBody">
+              <section className="imagePane">
+                <div className="imageToolbar">
+                  <div className="segmented">
+                    <button className={imageMode === 'page' ? 'active' : ''} onClick={() => setImageMode('page')}>Page</button>
+                    <button className={imageMode === 'line' ? 'active' : ''} onClick={() => setImageMode('line')}>Line crop</button>
+                  </div>
+                  <div className="imageControls">
+                    <button onClick={() => setZoom((value) => Math.max(0.55, value - 0.15))}><ZoomOut size={15} /></button>
+                    <span>{Math.round(zoom * 100)}%</span>
+                    <button onClick={() => setZoom((value) => Math.min(2.6, value + 0.15))}><ZoomIn size={15} /></button>
+                    <button onClick={() => { setZoom(1); setContrast(1.08); }}><RotateCcw size={15} /></button>
+                    <label>Contrast <input type="range" min="0.8" max="1.8" step="0.05" value={contrast} onChange={(event) => setContrast(Number(event.target.value))} /></label>
+                  </div>
                 </div>
-              ) : currentImageSrc ? (
-                <img src={currentImageSrc} alt={imageMode === 'page' ? 'Exam page' : 'OCR crop'} style={{ transform: `scale(${zoom})`, filter: `contrast(${contrast})` }} />
-              ) : (
-                <div className="imagePlaceholder">
-                  시험지 이미지가 아직 연결되지 않았습니다.<br />
-                  JSONL에는 <code>{imageMode === 'page' ? 'page_image_url/page_line_urls' : 'image_url'}</code> 또는 image_path를 넣고,<br />
-                  위의 <b>Import images folder</b>로 같은 파일명을 가진 이미지 폴더를 올리세요.
+                <div className="imageStage">
+                  {imageMode === 'page' && currentLineSources.length ? (
+                    <div className="syntheticPage" style={{ transform: `scale(${zoom})`, filter: `contrast(${contrast})` }}>
+                      <div className="syntheticHeader">{current.studentName} · page {current.pageNum} · reconstructed from line crops</div>
+                      {currentLineSources.map((src, lineIndex) => <img key={`${src}-${lineIndex}`} src={src} alt={`line ${lineIndex + 1}`} />)}
+                    </div>
+                  ) : currentImageSrc ? (
+                    <img src={currentImageSrc} alt={imageMode === 'page' ? 'Exam page' : 'OCR crop'} style={{ transform: `scale(${zoom})`, filter: `contrast(${contrast})` }} />
+                  ) : (
+                    <div className="imagePlaceholder">
+                      시험지 이미지가 아직 연결되지 않았습니다.<br />
+                      JSONL에는 <code>{imageMode === 'page' ? 'page_image_url/page_line_urls' : 'image_url'}</code> 또는 image_path를 넣고,<br />
+                      위의 <b>Import images folder</b>로 같은 파일명을 가진 이미지 폴더를 올리세요.
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </section>
 
-            <div className="ocrGrid">
-              <button onClick={() => patchCurrent({ currentText: current.appleText })}><b>A</b><span>Apple / baseline</span><p>{current.appleText || '—'}</p></button>
-              <button onClick={() => patchCurrent({ currentText: current.qwenText })}><b>Q</b><span>Qwen VLM</span><p>{current.qwenText || '—'}</p></button>
-              <button onClick={() => patchCurrent({ currentText: current.loraText })}><b>L</b><span>Qwen LoRA</span><p>{current.loraText || '—'}</p></button>
-            </div>
+              <section className="editPane">
+                <div className="ocrGrid">
+                  <button onClick={() => patchCurrent({ currentText: current.appleText })}><b>A</b><span>Apple / baseline</span><p>{current.appleText || '—'}</p></button>
+                  <button onClick={() => patchCurrent({ currentText: current.qwenText })}><b>Q</b><span>Qwen VLM</span><p>{current.qwenText || '—'}</p></button>
+                  <button onClick={() => patchCurrent({ currentText: current.loraText })}><b>L</b><span>Qwen LoRA</span><p>{current.loraText || '—'}</p></button>
+                </div>
 
-            <label className="fieldLabel">Corrected text</label>
-            <textarea
-              className="corrected"
-              value={current.currentText}
-              onChange={(event) => patchCurrent({ currentText: event.target.value })}
-              spellCheck={false}
-            />
+                <label className="fieldLabel">Corrected text</label>
+                <textarea
+                  className="corrected"
+                  value={current.currentText}
+                  onChange={(event) => patchCurrent({ currentText: event.target.value })}
+                  spellCheck={false}
+                />
 
-            <div className="scoringPanel">
-              <div>
-                <div className="panelTitle"><BadgeCheck size={16} /> Teacher SCM labels</div>
-                <p>OCR 검수와 같은 화면에서 teacher anchor를 쌓습니다. 빈 값이면 OCR 라벨만 export됩니다.</p>
-              </div>
-              {['structure', 'content', 'mechanics'].map((axis) => (
-                <label key={axis}>
-                  {axis[0].toUpperCase() + axis.slice(1)}
-                  <input value={current.teacherScore?.[axis] ?? ''} onChange={(event) => patchTeacherScore(axis, event.target.value)} placeholder="0-8" />
-                </label>
-              ))}
-            </div>
+                <div className="scoringPanel">
+                  <div>
+                    <div className="panelTitle"><BadgeCheck size={16} /> Teacher SCM</div>
+                    <p>선택 입력. OCR 라벨만 export 가능.</p>
+                  </div>
+                  {['structure', 'content', 'mechanics'].map((axis) => (
+                    <label key={axis}>
+                      {axis[0].toUpperCase() + axis.slice(1)}
+                      <input value={current.teacherScore?.[axis] ?? ''} onChange={(event) => patchTeacherScore(axis, event.target.value)} placeholder="0-8" />
+                    </label>
+                  ))}
+                </div>
 
-            <div className="reasonRow">
-              <ShieldAlert size={16} />
-              {(current.reasons || []).length ? current.reasons.map((reason) => <span key={reason}>{reason}</span>) : <span>no review reason</span>}
-            </div>
+                <div className="reasonRow">
+                  <ShieldAlert size={16} />
+                  {(current.reasons || []).length ? current.reasons.map((reason) => <span key={reason}>{reason}</span>) : <span>no review reason</span>}
+                </div>
 
-            <div className="footerActions">
-              <button className="button ghost" onClick={() => setIndex((i) => Math.max(i - 1, 0))}><ChevronLeft size={17} /> Prev</button>
-              <button className="button warning" onClick={() => saveAndNext('uncertain')}><Flag size={17} /> Uncertain</button>
-              <button className="button primary" onClick={() => saveAndNext('verified')}><Check size={17} /> Save & Next</button>
-              <button className="button ghost" onClick={() => setIndex((i) => Math.min(i + 1, Math.max(filtered.length - 1, 0)))}>Next <ChevronRight size={17} /></button>
+                <div className="footerActions">
+                  <button className="button ghost" onClick={() => setIndex((i) => Math.max(i - 1, 0))}><ChevronLeft size={17} /> Prev</button>
+                  <button className="button warning" onClick={() => saveAndNext('uncertain')}><Flag size={17} /> Uncertain</button>
+                  <button className="button primary" onClick={() => saveAndNext('verified')}><Check size={17} /> Save & Next</button>
+                  <button className="button ghost" onClick={() => setIndex((i) => Math.min(i + 1, Math.max(filtered.length - 1, 0)))}>Next <ChevronRight size={17} /></button>
+                </div>
+              </section>
             </div>
           </section>
         ) : (
